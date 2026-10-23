@@ -1,0 +1,52 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: projet1_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: trafiq_db
+      MYSQL_USER: trafiq_user
+      MYSQL_PASSWORD: trafiq_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data_p1:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: projet1_phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: rootpassword
+
+  backend:
+    build: ./backend
+    container_name: projet1_backend
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - GEMINI_API_KEY=GEMINI_API_KEY=${GEMINI_API_KEY}
+      - DB_HOST=db
+      - DB_USER=trafiq_user
+      - DB_PASSWORD=trafiq_password
+      - DB_NAME=trafiq_db
+    depends_on:
+      db:
+        condition: service_started
+
+  frontend:
+    build: ./frontend
+    container_name: projet1_frontend
+    restart: always
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data_p1:
